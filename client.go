@@ -402,16 +402,24 @@ FindAuth:
 		return err
 	}
 
+	// Read the name length and check its validity
 	var nameLength uint32
 	if err = binary.Read(c.c, binary.BigEndian, &nameLength); err != nil {
 		return err
 	}
 
+	const maxNameLength = 1024 * 1024 // OKAY BUMER
+	if nameLength > maxNameLength {
+		return fmt.Errorf("name length %d exceeds maximum allowed length %d", nameLength, maxNameLength)
+	}
+
+	// Allocate and read the desktop name
 	nameBytes := make([]uint8, nameLength)
 	if err = binary.Read(c.c, binary.BigEndian, &nameBytes); err != nil {
 		return err
 	}
 
+	// Assign the desktop name to the struct
 	c.DesktopName = string(nameBytes)
 
 	return nil
